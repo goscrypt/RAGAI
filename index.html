@@ -424,7 +424,56 @@
     
 <div id="system-status"></div>
 
-              
+<script>
+console.log('Code is running...');
+/*notes
+Add a force stopper in kb file to divide the chunks.
+ex. // - this comment element is a stopper 
+
+
+*/
+
+document.addEventListener('DOMContentLoaded', () => {
+            // --- 1. Link Range Sliders to Output Values (UI ONLY) ---
+            function linkRangeSlider(inputId, outputId) {
+                const input = document.getElementById(inputId);
+                const output = document.getElementById(outputId);
+                
+                if (input && output) {
+                    output.textContent = input.value; 
+                    input.addEventListener('input', () => {
+                        output.textContent = input.value;
+                    });
+                }
+            }
+            
+            linkRangeSlider('temperatureInput', 'tempOutput');
+            linkRangeSlider('topPInput', 'topPOutput');
+            linkRangeSlider('numBeamsInput', 'numBeamsOutput');
+
+
+            // --- 2. Toggle Sampling vs. Beam Search Panels (UI ONLY) ---
+            const samplingCheckbox = document.getElementById('useSamplingCheckbox');
+            const samplingPanel = document.getElementById('samplingControls');
+            const beamPanel = document.getElementById('beamControls');
+            
+            function toggleDecodingMode() {
+                if (samplingCheckbox.checked) {
+                    samplingPanel.style.display = 'block';
+                    beamPanel.style.display = 'none';
+                } else {
+                    beamPanel.style.display = 'block';
+                    samplingPanel.style.display = 'none';
+                }
+            }
+
+            toggleDecodingMode(); 
+            samplingCheckbox.addEventListener('change', toggleDecodingMode);
+        });
+     
+
+
+</script>
 <script type="module">
 import { pipeline, AutoTokenizer, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.0';
 
@@ -898,7 +947,64 @@ function trimToTokenLimit(text, maxTokens) {
   return finalAnswerSentences.join(' ').trim();
 }
 
+//cleaners and helpers
 
+function cleanGeneratedText(generatedText, promptText, queryText) {
+  let cleaned = (generatedText || "").trim();
+  const fullInstruction = (promptText || "").trim();
+
+  const escapedInstruction = fullInstruction.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const instructionRegex = new RegExp(`^${escapedInstruction}`, 'i');
+  cleaned = cleaned.replace(instructionRegex, '').trim();
+
+  const leakPhrases = [
+    /In summary,[\s\S]*/i,
+    /Strictly do not invent new words that are not found in context.[\s\S]*/i,
+  	/not answered in the provided context.*/i,
+    /In this context,.*?\./i,
+    /context:.*question:.*answer:[\s\r\n]*/i,
+    /based on the context provided,*/i,
+    /based on the context,*/i,
+    /here is the answer based on the context:*/i,
+    /^that*/i,
+    /of a USE*/i,
+    /^yes,*/i,
+  	/^the answer in this context is:*/i,
+  	/not provided in the given context./i,
+    /of using a USE device*/i,
+    /answer:[\s\r\n]*/i,
+    /^The correct answer is:*/i,
+    /^The answer is:*/i,
+  	/^The question is/i,
+    /Therefore, the answer is:*/i,
+    /Therefore, I cannot answer that question.*/i,
+ 	/^The given context does not provide information[\s\S]*/i,
+  	/^The provided context[\s\S]*/i,
+    /^The context does not provide information[\s\S]*/i,
+  	/^It is not specified[\s\S]*/i,
+    /\[CONTEXT\]:*/i,
+    /\[QUESTION\]:*/i,
+  ];
+
+  try {
+    if (queryText) {
+      leakPhrases.push(new RegExp(`^${queryText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\r\\n]*`, 'i'));
+      leakPhrases.push(new RegExp(`^What is ${queryText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\r\n]*`, 'i'));
+    }
+  } catch (e) { }
+
+  for (const pattern of leakPhrases) {
+    cleaned = cleaned.replace(pattern, '').trim();
+  }
+
+  cleaned = cleaned.replace(/^['":-]/, '').trim();
+
+  // Replace any sequence of asterisks and/or whitespace with a single space
+  cleaned = cleaned.replace(/[\s\*]+/g, ' ').trim();
+
+  return cleaned;
+}	
+	
 const { GoogleGenAI } = require("@google/genai"); 
 const ai = new GoogleGenAI(process.env.GEMINI_API_KEY || "AIzaSyA0JLeaXdO138mSnQG433a9YiBrnnemsTs");                                                         
 // Global scope or accessible to runRAG
