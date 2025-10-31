@@ -1,0 +1,1294 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><style>        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+
+        #app-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- LEFT PANEL: Chat Interface and File Upload --- */
+        #left-panel {
+            width: 60%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #ccc;
+        }
+
+        #left-panel h2 {
+            color: #2c3e50;
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        /* File Upload and Indexing Section (KB Control) */
+        #file-control-section {
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        #file-input {
+            margin-right: 10px;
+        }
+
+        #model-status {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #2980b9;
+        }
+        
+        /* Chat History / Conversation Area */
+        #chat-history {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            background-color: #fefefe;
+        }
+
+        /* Query Input Section */
+        #input-section {
+            display: flex;
+        }
+
+        #query-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px 0 0 4px;
+            font-size: 16px;
+        }
+
+        #send-button {
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #send-button:hover {
+            background-color: #2980b9;
+        }
+
+        /* --- RIGHT PANEL: Debug and Configuration --- */
+        
+        #right-panel {
+            display: flex;	
+            flex-direction: column;
+            width: 40%;	
+            max-height: 100vh;	
+            overflow-y: hidden;	
+            gap: 10px;	
+            padding: 20px;
+        }
+
+        #right-panel h2 {
+            color: #2c3e50;
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e67e22;
+            flex-shrink: 0;	
+        }
+
+        #config-settings {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            flex-shrink: 0;	
+            display: grid;	
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;	
+        }
+        
+        .config-full-width {
+            grid-column: 1 / -1;
+        }
+        
+        /* New styling for fallback checkbox group */
+        #fallback-settings {
+            grid-column: 1 / -1;
+            padding-top: 5px;
+            border-top: 1px dashed #ddd;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 15px;
+            font-size: 0.9em;
+        }
+        #fallback-settings div {
+            flex-shrink: 0;
+        }
+        
+        /* New styling for control groups */
+        .control-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Fieldset styling for grouping sampling/beam controls */
+        #decoding-controls fieldset {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+        #decoding-controls legend {
+            padding: 0 10px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        #prompt-input {
+            width: 100%;
+            min-height: 80px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        
+        /* Debug Area Container now holds only one panel */
+        #debug-area-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            gap: 10px;
+            min-height: 0;	
+        }
+
+        /* Base style for all major debug sections */
+        .debug-panel {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            
+            flex-grow: 1;	
+            min-height: 0;	
+            display: flex;	
+            flex-direction: column;	
+            overflow: hidden;	
+        }
+        
+        .debug-panel h3 {
+            margin-top: 0;
+            font-size: 1.1em;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+            color: #333;
+            flex-shrink: 0;
+            display: flex;	
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* The Debug View (Context Output) now takes up all the available space */
+        #debug-view {
+            flex-grow: 1;
+        }
+        
+        /* Context output area */
+        #context-output {
+            flex-grow: 1;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px dashed #ccc;
+            font-family: monospace;
+            font-size: 0.9em;
+            border-radius: 3px;
+        }
+        
+        /* Chat styling remains the same */
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 18px;
+            max-width: 80%;
+            clear: both;
+            font-size: 0.95em;
+        }
+
+        .user-message {
+            float: right;
+            background-color: #3498db;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .bot-message {
+            float: left;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            border-bottom-left-radius: 2px;
+        }
+        
+        .data-message {
+            clear: both;
+            width: 98%;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f0f8ff;
+            border: 1px solid #cceeff;
+            font-family: monospace;
+            font-size: 0.8em;
+            white-space: pre-wrap;
+        }
+        
+        .grounded-label {
+            font-weight: bold;
+            margin-right: 5px;
+            color: #27ae60;
+        }
+        /* Style for range inputs */
+        input[type="range"] {
+            width: 60%; 
+            min-width: 100px; 
+        }
+</style></head><body><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Chatbot with Dynamic Controls</title>
+</head>
+<body>
+
+    <div id="app-container">
+        
+        <div id="left-panel">
+            <h2>RAG Chat Interface</h2>
+
+            <div id="file-control-section">
+                <input type="file" id="file-input" accept=".txt,.json,.csv">
+                <button id="index-button">Index File</button>
+                <div id="model-status">Model: Loading... | KB: Empty</div>
+            </div>
+
+            <div id="chat-history">
+                <div class="chat-message bot-message">Welcome!</div>
+            </div>
+
+            <div id="input-section">
+                <input type="text" id="query-input" placeholder="Ask a question..." disabled>
+                <button id="send-button" disabled>Send</button>
+            </div>
+        </div>
+
+        <div id="right-panel">
+            <h2>Configuration & Debug</h2>
+
+            <div id="config-settings">
+             <select id="generatorModelSelect">
+              <option value="squad">SQuAD QA</option>
+              <option value="flan-t5">Flan-T5 Generator</option>
+              <option value="gemini">Gemini Generator</option> 
+             </select>
+                        
+                <div class="config-full-width">
+                    <div>RAG Prompt: <input type="text" id="topic-input" value="Vinia" style="width: 50px;margin-bottom:10px"></div>
+                    <textarea id="prompt-input" rows="4">Answer in complete sentences using the provided context.
+</textarea>
+                </div>
+                
+                <div id="decoding-controls" class="config-full-width">
+                    <div class="control-group">
+                        <label for="useSamplingCheckbox"><strong>Use Sampling (Top-p / Temp)</strong></label>
+                        <input type="checkbox" id="useSamplingCheckbox" checked>
+                    </div>
+
+                    <fieldset id="samplingControls">
+                        <legend>Sampling Parameters</legend>
+                        
+                        <div class="control-group">
+                            <label for="temperatureInput">Temperature:</label>
+                            <input type="range" id="temperatureInput" min="0.0" max="1.0" step="0.05" value="0.3">
+                            <output id="tempOutput" style="width: 30px;">0.3</output>
+                        </div>
+
+                        <div class="control-group">
+                            <label for="topPInput">Top P:</label>
+                            <input type="range" id="topPInput" min="0.0" max="1.0" step="0.05" value="0.4">
+                            <output id="topPOutput" style="width: 30px;">0.4</output>
+                        </div>
+                         
+                    </fieldset>
+
+                    <fieldset id="beamControls" style="display: none;">
+                        <legend>Beam Search Parameters</legend>
+
+                        <div class="control-group">
+                            <label for="numBeamsInput">Number of Beams:</label>
+                            <input type="range" id="numBeamsInput" min="1" max="10" step="1" value="1">
+                            <output id="numBeamsOutput" style="width: 30px;">1</output>
+                        </div>
+                          
+                    </fieldset>
+                      <label for="num-samples-input">Num Samples:</label>
+						<input type="number" id="num-samples-input" value="3" min="1" max="10">
+                          <label for="no-repeat-ngram-size">No Repeat</label>
+                        <input type="number" id="no-repeat-ngram-size" value="3" min="1" max="3">
+                       
+                </div>
+                <div id="fallback-settings">
+                    <strong>Fallback Sources:</strong>
+                    <div>
+                        <input type="checkbox" id="fallback-ddg" >
+                        <label for="fallback-ddg">DuckDuckGo</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="fallback-wiki" >
+                        <label for="fallback-wiki">Wikipedia</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="fallback-op" checked>
+                        <label for="fallback-op">One Piece</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="fallback-google" >
+                        <label for="fallback-google">Google Sheet</label>
+                    </div>
+                </div>
+
+                <div>
+                    <div>Chunk Size (chars): <input type="number" id="chunk-size-input" value="256" min="100" max="2048" style="width: 60px;"></div>
+                </div>
+                <div>
+                    <div>Chunk Overlap: <input type="number" id="chunk-overlap-input" value="32" min="0" max="500" style="width: 60px;"></div>
+                </div>
+
+                <div>
+                    <div>Initial Retrieval (K): <input type="number" id="retrieve-k-input" value="5" min="1" max="20" style="width: 60px;"></div>
+                </div>
+                <div>
+                    <div>Similarity Threshold: <input type="number" id="similarity-threshold-input" value="0.3" step="0.05" min="0.0" max="1.0" style="width: 60px;"></div>
+                </div>
+                <div>
+                    <div>Final Candidates (N): <input type="number" id="rerank-n-input" value="3" min="1" max="10" style="width: 60px;"></div>
+                </div>
+                
+                <div>
+                    <div>Max New Tokens: <input type="number" id="max-new-tokens-input" value="200" min="10" max="512" style="width: 60px;"></div>
+                </div>
+                <div>
+                    <div>Repetition Penalty: <input type="number" id="repetition-penalty-input" value="1.05" step="0.1" min="0.5" max="2.0" style="width: 60px;"></div>
+                </div>
+                <div>
+                    <div>Length Penalty: <input type="number" id="length-penalty-input" value="0.8" step="0.1" min="0.5" max="2.0" style="width: 60px;"></div>
+                </div>
+                
+                <input type="hidden" id="reindex-button" value="placeholder">
+                <input type="hidden" id="show-chunking-input" checked>
+                <input type="hidden" id="user-input">
+                <input type="hidden" id="chat-window">
+                <input type="hidden" id="system-status">
+                <input type="hidden" id="chunk-list">
+                <input type="hidden" id="retrieved-chunks-container">
+            </div>
+            
+        <div id="debug-area-container">
+            <div id="debug-view" class="debug-panel">
+                <h3>
+                    Debug View: Retrieved Contexts
+                    <button id="save-fallback-kb-btn" class="utility-button" style="float: right; margin-left: 10px;">Save Debug Content</button>
+                </h3>
+                <pre id="context-output">Awaiting first search...</pre>
+                <div id="rerank-details" style="font-size: 0.85em; margin-top: 5px;">
+                    Top Score: N/A | Candidates: 0
+                </div>
+            </div>
+        </div>
+
+        </div>
+    </div>
+    
+    
+<div id="system-status"></div>
+
+              
+<script type="module">
+import { pipeline, AutoTokenizer, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.0';
+
+// --- MODEL IDS ---
+const EMBEDDER_MODEL = 'Xenova/all-MiniLM-L6-v2';
+const SQUAD_MODEL    = 'Xenova/distilbert-base-uncased-distilled-squad';
+const FLAN_T5_MODEL  = 'Xenova/LaMini-Flan-T5-77M';
+
+// --- STATE ---
+let vectorStore = null;
+let knowledgeBaseText = null;
+let embedder = null;
+let squadPipeline = null;
+let flanT5Pipeline = null;
+let currentFileExtension = null;
+
+// --- DOM ELEMENTS (Assumed to exist in your HTML) ---
+const chatWindow = document.getElementById('chat-history');
+const systemStatus = document.getElementById('model-status'); 
+const fileInput = document.getElementById('file-input');
+const reindexButton = document.getElementById('index-button');
+const generatorModelSelect = document.getElementById('generatorModelSelect');
+const userInput = document.getElementById('query-input');
+const sendButton = document.getElementById('send-button');
+const promptInput = document.getElementById('prompt-input');
+const topicInput = document.getElementById('topic-input');
+
+const chunkList = document.getElementById('context-output');
+const rerankDetails = document.getElementById('rerank-details');
+
+const chunkSizeInput = document.getElementById('chunk-size-input');
+const chunkOverlapInput = document.getElementById('chunk-overlap-input');
+const retrieveKInput = document.getElementById('retrieve-k-input');
+const similarityThresholdInput = document.getElementById('similarity-threshold-input');
+const rerankNInput = document.getElementById('rerank-n-input');
+
+const maxNewTokensInput = document.getElementById('max-new-tokens-input');
+const repetitionPenaltyInput = document.getElementById('repetition-penalty-input');
+const lengthPenaltyInput = document.getElementById('length-penalty-input');
+
+// --- DECODING STRATEGY DOM ELEMENTS ---
+const useSamplingCheckbox = document.getElementById('useSamplingCheckbox');
+const temperatureInput = document.getElementById('temperatureInput');
+const topPInput = document.getElementById('topPInput');
+const numBeamsInput = document.getElementById('numBeamsInput');
+const noRrepeatNgramInput = document.getElementById('no-repeat-ngram-size');
+// --- END DECODING ELEMENTS ---
+
+const fallbackDdg = document.getElementById('fallback-ddg');
+const fallbackWiki = document.getElementById('fallback-wiki');
+const fallbackOP = document.getElementById('fallback-op');
+const fallbackGoogle = document.getElementById('fallback-google');
+
+async function initializeModels() {
+  try {
+    if (systemStatus) systemStatus.textContent = 'Model: Loading... | KB: Empty';
+
+    // Load all three pipelines in parallel
+    const [embedderPipeline, squad, flan] = await Promise.all([
+      pipeline('feature-extraction', EMBEDDER_MODEL),
+      pipeline('question-answering', SQUAD_MODEL),
+      pipeline('text2text-generation', FLAN_T5_MODEL)
+    ]);
+
+    embedder = embedderPipeline;
+    squadPipeline = squad;
+    flanT5Pipeline = flan;
+
+    if (systemStatus) systemStatus.textContent = 'Model: Ready | KB: 0 chunks';
+    console.log('SYSTEM: All models initialized:', {
+      embedder: EMBEDDER_MODEL,
+      squad: SQUAD_MODEL,
+      flan: FLAN_T5_MODEL
+    });
+  } catch (err) {
+    console.error('Model Loading Error:', err);
+    if (systemStatus) systemStatus.textContent = `SYSTEM ERROR: ${err.message}`;
+  }
+}
+
+initializeModels();
+
+fileInput.addEventListener('change', () => {
+  reindexButton.disabled = fileInput.files.length === 0;
+  if (fileInput.files.length) currentFileExtension = fileInput.files[0].name.split('.').pop().toLowerCase();
+});
+
+reindexButton.addEventListener('click', async () => {
+  const file = fileInput.files[0];
+  if (!file) return alert('Select a file first.');
+
+  chatWindow.innerHTML = ''; // Clear chat before starting the process
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    knowledgeBaseText = e.target.result;
+
+    // DYNAMICALLY READS CHUNKING SETTINGS from UI
+    vectorStore = new VectorStore(embedder,
+      parseInt(chunkSizeInput.value),
+      parseInt(chunkOverlapInput.value)
+    );
+    await vectorStore.indexText(knowledgeBaseText); // Indexing happens here
+
+    // --- LOGIC: DISPLAY CHUNKS IN CHAT BOX ---
+    const numChunks = vectorStore.chunks.length;
+
+    // 1. Add a message summarizing the indexing
+    appendMessage('bot', `Knowledge base "${file.name}" indexed successfully! There are **${numChunks}** chunks. See below for the raw chunk texts.`);
+
+    // 2. Format and display raw chunk data in a special container
+    const chunkTextOutput = vectorStore.chunks.map((c, index) =>
+      `[CHUNK ${index + 1}/${numChunks}]\n${c.text}`
+    ).join('\n\n---\n\n');
+
+    const dataDiv = document.createElement('div');
+    dataDiv.className = 'data-message';
+    dataDiv.textContent = chunkTextOutput;
+    chatWindow.appendChild(dataDiv);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+    // --- END LOGIC ---
+
+    userInput.disabled = false;
+    sendButton.disabled = false;
+    userInput.focus();
+  };
+  reader.readAsText(file);
+});
+
+// --- VECTOR STORE CLASS (Final, Corrected Version) ---
+class VectorStore {
+  constructor(embedder, chunkSize, chunkOverlap) {
+    this.embedder = embedder;
+    this.chunkSize = chunkSize;
+    this.chunkOverlap = chunkOverlap;
+    this.chunks = [];
+    this.tokenizer = null;
+    this.hashSet = new Set();
+  }
+
+  async initialize() {
+    try {
+      this.tokenizer = await AutoTokenizer.from_pretrained(EMBEDDER_MODEL);
+      console.log("[VECTOR STORE] Tokenizer loaded.");
+    } catch (err) {
+      console.error("[VECTOR STORE] Tokenizer failed to load:", err);
+    }
+  }
+
+  /**
+   * CHUNKTEXT: MODIFIED TO RESPECT BLOCK BOUNDARIES
+   * The array blockStartIndices contains the sentence indices that MUST NOT 
+   * be included in the overlap of the preceding chunk (i.e., start of a new block).
+   */
+  chunkText(sentences, blockStartIndices) {
+    const chunks = [];
+    let sentenceIndex = 0;
+
+    while (sentenceIndex < sentences.length) {
+      let currentChunkSentences = [];
+      let currentLength = 0;
+      let lastSentenceIndexInChunk = sentenceIndex;
+      
+      // Find the next hard block boundary index *after* the current sentenceIndex
+      const nextBlockBoundary = blockStartIndices.find(index => index > sentenceIndex) || sentences.length;
+
+      // 1. Accumulate sentences for the current chunk
+      // Loop runs only up to the next boundary OR the max chunk size
+      for (let i = sentenceIndex; i < nextBlockBoundary; i++) { 
+        const sentence = sentences[i];
+        const sentenceLength = sentence.length + 1; // +1 for space/punctuation
+        
+        if (currentLength + sentenceLength > this.chunkSize && currentChunkSentences.length > 0) {
+          break;
+        }
+        currentChunkSentences.push(sentence);
+        currentLength += sentenceLength;
+        lastSentenceIndexInChunk = i;
+      }
+      
+      if (currentChunkSentences.length > 0) {
+        chunks.push(currentChunkSentences.join(' ').trim());
+      }
+      
+      if (lastSentenceIndexInChunk === sentences.length - 1) {
+        break;
+      }
+
+      // 2. Calculate Overlap Start Index (Standard Logic)
+      let overlapLength = 0;
+      let sentencesToKeepForOverlap = 0;
+      
+      for (let i = currentChunkSentences.length - 1; i >= 0; i--) {
+        if (overlapLength + currentChunkSentences[i].length > this.chunkOverlap && sentencesToKeepForOverlap > 0) {
+          break;
+        }
+        overlapLength += currentChunkSentences[i].length + 1;
+        sentencesToKeepForOverlap++;
+      }
+      
+      const intendedNextChunkStartIndex = lastSentenceIndexInChunk - sentencesToKeepForOverlap + 1;
+      
+      // 3. CRITICAL FIX: Overlap Termination at Block Boundary
+      // The next chunk MUST NOT start before the next block boundary index.
+      const actualNextChunkStartIndex = nextBlockBoundary;
+
+      // Set the index for the next iteration: take the intended overlap start, 
+      // but ensure it's at least the block boundary. This removes all overlap at the stopper.
+      sentenceIndex = Math.max(intendedNextChunkStartIndex, actualNextChunkStartIndex);
+    }
+    return chunks;
+  }
+
+  hashChunk(text) {
+    // Only use lower case for hashing
+    const clean = text.replace(/\s+/g, " ").trim().toLowerCase();
+    let hash = 0;
+    for (let i = 0; i < clean.length; i++) {
+      hash = (hash << 5) - hash + clean.charCodeAt(i);
+      hash |= 0;
+    }
+    return hash;
+  }
+
+  isNearDuplicate(prev, current) {
+    if (!prev || !current) return false;
+    // Use lower case for comparison to catch near-duplicates regardless of case
+    const prevLower = prev.toLowerCase();
+    const currentLower = current.toLowerCase();
+    const shorter = prevLower.length < currentLower.length ? prevLower : currentLower;
+    const longer = prevLower.length < currentLower.length ? currentLower : prevLower;
+    return longer.includes(shorter) && (shorter.length / longer.length > 0.8);
+  }
+
+  /**
+   * INDEXTEXT: Handles block indices from the splitter.
+   */
+  async indexText(text) {
+    this.chunks = [];
+    this.hashSet.clear();
+    if (!this.tokenizer) await this.initialize();
+
+    const cleanText = text.replace(/[\u200B-\u200F\uFEFF]/g, " ").trim();
+    const { sentences: allSentences, blockStartIndices } = splitIntoSentences(cleanText); 
+    
+    const rawChunks = this.chunkText(allSentences, blockStartIndices);
+
+    console.log(`[VECTOR STORE] Indexing ${rawChunks.length} raw chunks from ${allSentences.length} sentences...`);
+
+    let lastChunk = ""; 
+    let lastEmbedding = null;
+
+    for (const chunkText of rawChunks) {
+      const hash = this.hashChunk(chunkText);
+
+      if (this.hashSet.has(hash)) {
+        console.log("[DEDUP] Skipping exact duplicate:", chunkText.slice(0, 60) + "...");
+        continue;
+      }
+
+      if (this.isNearDuplicate(lastChunk, chunkText)) {
+        console.log("[DEDUP] Skipping overlap duplicate:", chunkText.slice(0, 60) + "...");
+        continue;
+      }
+
+      try {
+        const output = await this.embedder(chunkText, { pooling: "mean", normalize: true });
+        const embedding = Array.from(output.data);
+
+        if (lastEmbedding) {
+          const sim = this.cosineSimilarity(embedding, lastEmbedding);
+          if (sim > 0.97) {
+            console.log("[DEDUP] Skipping semantic duplicate:", chunkText.slice(0, 60) + "...");
+            continue;
+          }
+        }
+
+        this.hashSet.add(hash);
+        // Store the original-cased text
+        this.chunks.push({ text: chunkText, embedding });
+        lastChunk = chunkText;
+        lastEmbedding = this.chunks[this.chunks.length - 1].embedding;
+
+      } catch (err) {
+        console.error("[VECTOR STORE] Embedding failed:", err);
+      }
+    }
+
+    if (systemStatus) systemStatus.textContent = `Model: Ready | KB: ${this.chunks.length} unique chunks indexed.`;
+  }
+
+  cosineSimilarity(a, b) {
+    let dot = 0, magA = 0, magB = 0;
+    for (let i = 0; i < a.length; i++) {
+      dot += a[i] * b[i];
+      magA += a[i] ** 2;
+      magB += b[i] ** 2;
+    }
+    return magA && magB ? dot / (Math.sqrt(magA) * Math.sqrt(magB)) : 0;
+  }
+
+  async search(query, k, rerankN, threshold) {
+    if (!this.chunks.length) return [];
+    const output = await this.embedder(query, { pooling: "mean", normalize: true });
+    const queryEmbedding = Array.from(output.data);
+    
+    const scores = this.chunks.map(c => ({
+      text: c.text, // Use the original-cased text
+      score: this.cosineSimilarity(queryEmbedding, c.embedding)
+    }));
+    
+    const results = scores.filter(s => s.score >= threshold).sort((a, b) => b.score - a.score).slice(0, k);
+    const reranked = results.slice(0, rerankN);
+
+    // **FIX: Ensure correct case and line breaks for the UI display**
+    chunkList.textContent = results.map(r => {
+        let chunkText = (typeof r.text === 'string') ? r.text : (typeof r.text === 'object' ? JSON.stringify(r.text) : String(r.text ?? ""));
+        const cleanedDisplayText = chunkText.replace(/[\s\*]+/g, ' ').trim(); 
+        return `Score: ${r.score.toFixed(4)}\n${cleanedDisplayText}`;
+    }).join("\n\n---\n\n");
+    rerankDetails.textContent = `Top Score: ${reranked[0]?.score.toFixed(4) ?? "N/A"} | Candidates: ${reranked.length}`;
+
+    return reranked;
+  }
+}
+// --- END VECTOR STORE CLASS ---
+
+// ----------------------------------------------------------------------
+// --- SENTENCE SPLITTING FUNCTIONS (Modified to return block indices) ---
+// ----------------------------------------------------------------------
+
+/**
+ * SPLITINTOSENTENCES: MODIFIED TO RETURN SENTENCES AND BLOCK START INDICES
+ */
+function splitIntoSentences(text) {
+  const lines = text.split('\n');
+  let allSentences = [];
+  let blockStartIndices = [0]; // Index 0 is always a block start
+  
+  let currentPartLines = [];
+
+  for (const line of lines) {
+    const stopperIndex = line.indexOf('//');
+    let content = line.trim();
+
+    if (stopperIndex !== -1) {
+      // 1. Local Discard: Keep content BEFORE the stopper
+      content = line.substring(0, stopperIndex).trim();
+
+      // If there was content before the stopper, process it
+      if (content.length > 0) {
+        currentPartLines.push(content);
+      }
+      
+      // Process the accumulated content as a single block
+      if (currentPartLines.length > 0) {
+        const blockText = currentPartLines.join(' ');
+        const newSentences = processTextBlock(blockText);
+        allSentences.push(...newSentences);
+      }
+      
+      // 2. Hard Block Separation: Mark the start of the next block
+      currentPartLines = [];
+      blockStartIndices.push(allSentences.length);
+      
+      continue;
+    }
+
+    // If no stopper, and the line has content, add it to the current block
+    if (content.length > 0) {
+      currentPartLines.push(content);
+    }
+  }
+
+  // Process the last accumulated block
+  if (currentPartLines.length > 0) {
+    const blockText = currentPartLines.join(' ');
+    const newSentences = processTextBlock(blockText);
+    allSentences.push(...newSentences);
+  }
+  
+  // Ensure the last block start index is valid and unique
+  if (blockStartIndices[blockStartIndices.length - 1] === allSentences.length) {
+    blockStartIndices.pop();
+  }
+
+  // Fallback logic
+  if (allSentences.length === 0 && text.trim().length > 0) {
+    const sentences = text.split(/\n{3,}/).filter(s => s.trim().length > 0).map(s => s.trim());
+    return { sentences: sentences, blockStartIndices: [0] };
+  }
+
+  return { sentences: allSentences, blockStartIndices };
+}
+
+/**
+ * Helper function to apply the sentence split logic to a clean block of text.
+ */
+function processTextBlock(part) {
+  let sentences = [];
+  
+  // Split the text into parts based on strong paragraph breaks (\n\n) first
+  const strongParts = part.split(/\n{2,}/);
+  
+  for (const strongPart of strongParts) {
+    if (strongPart.trim().length === 0) continue;
+
+    // Sentence splitting regex
+    const sentenceRegex = /(?<!\b(?:Dr|Mr|Ms|Mrs|Jr|Sr|vs|d|e\.g|i\.e|D))([.?!])\s+(?=[A-Z0-9*#-]|$)/g;
+    const preprocessed = strongPart.replace(/---/g, ' ');
+    const rawParts = preprocessed.split(sentenceRegex);
+
+    for (let i = 0; i < rawParts.length; i += 2) {
+      let sentence = rawParts[i];
+      // Re-append the punctuation
+      if (i + 1 < rawParts.length && rawParts[i + 1] && rawParts[i + 1].match(/[.?!]/)) {
+        sentence += rawParts[i + 1];
+      }
+      if (sentence.trim().length > 0) {
+        sentences.push(sentence.trim());
+      }
+    }
+  }
+
+  return sentences;
+}
+
+// ----------------------------------------------------------------------
+// --- RAG AND UI FUNCTIONS (Rest of the script) ---
+// ----------------------------------------------------------------------
+
+function appendMessage(sender, msg, grounded = false) {
+  const div = document.createElement('div');
+  div.className = `chat-message ${sender}-message`;
+  div.innerHTML = grounded ? `<span class="grounded-label">Grounded:</span> ${msg}` : msg;
+  chatWindow.appendChild(div);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+sendButton.addEventListener('click', async () => {
+  const query = userInput.value.trim();
+  if (!query) return;
+  userInput.value = '';
+  runRAG(query);
+});
+
+userInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendButton.click();
+});
+
+
+/**
+ * Trims text to ensure the final answer is less than or equal to maxTokens,
+ * while respecting sentence boundaries (no partial sentences).
+ */
+function trimToTokenLimit(text, maxTokens) {
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+  let finalAnswerSentences = [];
+  let currentWordCount = 0;
+
+  for (const sentence of sentences) {
+    const sentenceWords = sentence.trim().split(/\s+/).filter(word => word.length > 0);
+    const sentenceWordCount = sentenceWords.length;
+    if (currentWordCount + sentenceWordCount <= maxTokens) {
+      finalAnswerSentences.push(sentence);
+      currentWordCount += sentenceWordCount;
+    } else {
+      break;
+    }
+  }
+  return finalAnswerSentences.join(' ').trim();
+}
+
+
+const { GoogleGenAI } = require("@google/genai"); 
+const ai = new GoogleGenAI(process.env.GEMINI_API_KEY || "AIzaSyA0JLeaXdO138mSnQG433a9YiBrnnemsTs");                                                         
+// Global scope or accessible to runRAG
+async function geminiGenerator(prompt, options) {
+    // 1. Get the prompt (which includes the RAG instruction, context, and query)
+    const fullPrompt = prompt;
+
+    // 2. Configure the call using your API library (e.g., Google GenAI SDK)
+    // NOTE: Replace this with your actual API key and setup logic
+    try {
+        // Example structure (will vary based on your SDK/API setup):
+        const response = await fetch('/api/gemini/generate', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ 
+                 prompt: fullPrompt, 
+                 maxTokens: options.max_new_tokens 
+             })
+        });
+
+        const data = await response.json();
+
+        // 3. Return the generated text in a format that your Step 6 cleanup understands
+        // For unified cleanup, we assume it returns a simple object: { generated_text: "..." }
+        if (data.text) {
+             return { generated_text: data.text };
+        } else {
+             throw new Error("Gemini API call failed or returned no text.");
+        }
+
+    } catch (error) {
+        console.error("Gemini Generation Error:", error);
+        throw error; 
+    }
+}
+                                                         
+async function runRAG(query) {
+    // keep original signature (do not rename)
+    try {
+        // 1. Query Cleanup and Status Update
+        if (typeof query !== 'string') {
+            console.warn("runRAG called with non-string query:", query);
+            query = String(query ?? "");
+        }
+        query = query.trim();
+        if (!query.endsWith('?') && query.length > 0) query += '?';
+
+        appendMessage('user', query);
+        const systemStatus = document.getElementById('model-status');
+        if (systemStatus) systemStatus.textContent = 'SYSTEM: Searching Knowledge Base...';
+
+        // 2. Initializations & Model Selection
+        const originalInstruction = (promptInput.value || "").trim().replace(/\s+$/, '');
+        let finalAnswer = "";
+        let context = "";
+        let sourceTag = "";
+        let topChunkText = ""; 
+        let topChunkScore = 0.0;
+
+        const selectedModelValue = generatorModelSelect.value || "";
+        const isQuestionAnsweringModel = selectedModelValue.includes('squad');
+        // --- NEW: Identify Gemini Model ---
+        const isGeminiModel = selectedModelValue.includes('gemini'); 
+        
+        // Generator is set only if it's NOT SQuAD
+        const generator = isQuestionAnsweringModel ? squadPipeline : (isGeminiModel ? geminiGenerator : flanT5Pipeline);
+        // -----------------------------------
+
+        const rerankN = parseInt(rerankNInput.value);
+        const retrieveK = parseInt(retrieveKInput.value);
+        const similarityThreshold = parseFloat(similarityThresholdInput.value);
+        const topic = topicInput.value;
+
+        // 3. Retrieval (Internal KB)
+        let retrieved = await vectorStore.search(query, retrieveK, rerankN, similarityThreshold);
+        
+        // --- 50% TOP-SCORE FILTER (Existing Logic) ---
+        if (retrieved && retrieved.length > 0) {
+            
+            const topChunk = retrieved[0];
+            // Capture and clean the top chunk text immediately
+            topChunkText = String(topChunk.text ?? "").replace(/[\s\*]+/g, ' ').trim(); 
+            topChunkScore = topChunk.score;
+            
+            // ... (Logging logic for retrieved chunks omitted for brevity)
+            
+            if (retrieved.length > 1) { 
+                const topScore = topChunk.score;
+                const scoreThreshold = topScore * 0.50; 
+                
+                const originalCount = retrieved.length;
+                retrieved = retrieved.filter(chunk => chunk.score >= scoreThreshold);
+                
+                if (originalCount !== retrieved.length) {
+                    console.log(`[RAG Filter] Applied 50% top-score rule. Filtered ${originalCount - retrieved.length} chunks. New count: ${retrieved.length}`);
+                }
+            }
+        }
+        // --- END 50% TOP-SCORE FILTER ---
+
+
+        if (retrieved && retrieved.length > 0) {
+            // Context concatenation logic
+            context = retrieved
+                .map(r => String(r.text ?? "").replace(/[\s\*]+/g, ' ').trim())
+                .filter(Boolean)
+                .join("\n\n")
+                .trim();
+
+            sourceTag = "📚";
+        } else {
+            sourceTag = "🧠";
+            // ... (Status updates for no context omitted for brevity)
+            context = ""; 
+        }
+
+        // 4. Configure Generation Options and Construct Prompt
+        let options = {};
+        let prompt; 
+        let qa_question; 
+        const isUncasedModel = selectedModelValue.includes('uncased'); 
+
+        if (isQuestionAnsweringModel) {
+            if (systemStatus) systemStatus.textContent = 'SYSTEM: Generating response using QA (SQUAD) Model...';
+            
+            const cleanedQuery = query.replace(/\s+/g, ' ').trim();
+            qa_question = isUncasedModel ? cleanedQuery.toLowerCase() : cleanedQuery;
+            
+            console.log(`DEBUG QA Call:Question: ${qa_question}, contextLen: ${context.length}`);
+
+        } else {
+            // --- T5 / GEMINI Generator Path ---
+            if (systemStatus) systemStatus.textContent = `SYSTEM: Generating response using ${isGeminiModel ? 'Gemini' : 'Flan-T5'} Model...`;
+            
+            // The RAG prompt is unified for T5 and Gemini
+            const dynamicInstruction = `${originalInstruction} Context: ${context} Question: ${query}`.trim().replace(/\s+/g, ' ');
+            prompt = dynamicInstruction;
+            
+            // T5/Gemini options (assuming Gemini can use a subset or similar structure)
+            const useSampling = useSamplingCheckbox.checked; 
+            options = {
+                max_new_tokens: parseInt(maxNewTokensInput.value),
+                repetition_penalty: parseFloat(repetitionPenaltyInput.value),
+                // ... other T5/Gemini options
+                do_sample: useSampling,
+            };
+            // ... (Sampling/Beam search setup omitted for brevity)
+        }
+
+        // 5. Execute Generation / QA (safe calls)
+        let results;
+        try {
+            if (isQuestionAnsweringModel) {
+                if (!generator) throw new Error("QA model not initialized");
+                results = await generator(qa_question, context);
+            } 
+            // --- NEW: Separate Gemini Call ---
+            else if (isGeminiModel) {
+                if (!generator) throw new Error("Gemini model not initialized");
+                // Calling the placeholder function with the necessary RAG components
+                results = await generator(prompt, options); 
+            }
+            // --- Existing T5 Call ---
+            else {
+                if (!generator) throw new Error("Generation model (T5) not initialized");
+                results = await generator(prompt, options);
+            }
+        } catch (err) {
+            console.error("Model call error:", err);
+            appendMessage('bot', `(Error running model: ${err.message})`);
+            if (systemStatus) systemStatus.textContent = `SYSTEM ERROR: ${err.message}`;
+            return;
+        }
+
+        // 6. Cleanup and Final Selection Logic
+        let cleanedText = "";
+
+        if (isQuestionAnsweringModel) {
+            // ... (Existing SQuAD output cleanup logic remains the same)
+            let answer = null; // ... (extract answer logic)
+            // ... (SQuAD logic uses "answer" and "confidence")
+            // ... 
+            
+            if (typeof answer === 'string' && answer.trim().length > 0) {
+                cleanedText = answer.trim();
+                // (No truncation)
+                
+                console.log(`[QA RESULT] ✅ Answer: ${cleanedText} | score: ${confidence ?? "N/A"}`);
+                
+                if (cleanedText.length > 0) {
+                    cleanedText = cleanedText.charAt(0).toUpperCase() + cleanedText.slice(1);
+                }
+            } else {
+                console.warn("[QA RESULT] Unexpected QA output:", results);
+                cleanedText = ""; 
+            }
+            
+        } else {
+            // --- T5 / GEMINI Output Cleanup Path ---
+            // T5 and Gemini results are assumed to have a similar text output structure
+            const rawGenerated = results?.generated_text || results?.[0]?.generated_text || String(results) || "";
+            cleanedText = cleanGeneratedText(String(rawGenerated || ""), prompt, query);
+
+            // optional trim
+            const maxAnswerTokens = parseInt(maxNewTokensInput.value);
+            if (maxAnswerTokens > 0 && cleanedText) {
+                cleanedText = trimToTokenLimit(cleanedText, maxAnswerTokens);
+            }
+        }
+
+        // 6b. Fallback Logic (T5 only if SQuAD failed)
+        // Note: Gemini is NOT part of this fallback. If SQuAD fails, T5 is the fallback, 
+        // regardless of whether Gemini was the original intent.
+
+        const MIN_WORD_THRESHOLD = 7; 
+        
+        const noAnswer = !cleanedText || cleanedText.length === 0;
+        const wordCount = cleanedText.split(/\s+/).filter(Boolean).length;
+        const isTooShortAnswer = cleanedText.length > 0 && wordCount < MIN_WORD_THRESHOLD;
+
+        if (isQuestionAnsweringModel && (noAnswer || isTooShortAnswer)) {
+            // ... (Your existing SQuAD to T5 fallback logic remains here)
+            try {
+                let reason = noAnswer ? "No answer found" : `Answer too short (words: ${wordCount})`;
+                console.warn(`[RAG Fallback] SQuAD result was: "${cleanedText}". Reason: ${reason}. Switching to T5 generator.`);
+                
+                const finalFallbackPrompt = `${originalInstruction} Context: ${context} Question: ${query}`.trim().replace(/\s+/g, ' ');
+
+                const fallbackResults = await flanT5Pipeline(finalFallbackPrompt, {
+                    max_new_tokens: Math.max(64, parseInt(maxNewTokensInput.value) || 128)
+                });
+
+                let fallbackText = ""; // ... (normalize fallback output)
+                if (Array.isArray(fallbackResults) && fallbackResults[0]?.generated_text) {
+                    fallbackText = fallbackResults[0].generated_text;
+                } else if (typeof fallbackResults === 'object' && fallbackResults.generated_text) {
+                    fallbackText = fallbackResults.generated_text;
+                } else if (typeof fallbackResults === 'string') {
+                    fallbackText = fallbackResults;
+                }
+                
+                let tempCleanedText = cleanGeneratedText(String(fallbackText || ""), finalFallbackPrompt, query);
+
+                let fallbackWordCount = tempCleanedText.split(/\s+/).filter(Boolean).length;
+                
+                if (fallbackWordCount >= MIN_WORD_THRESHOLD || tempCleanedText.toLowerCase().trim() === "i do not know") {
+                    cleanedText = tempCleanedText;
+                } else {
+                    console.warn(`[RAG Fallback Fail] T5 answer still too short (words: ${fallbackWordCount}). Enforcing "i do not know".`);
+                    cleanedText = "i do not know";
+                }
+
+            } catch (fbErr) {
+                console.error("Fallback generation error:", fbErr);
+                cleanedText = "I encountered an error during the fallback process and cannot provide an answer."; 
+            }
+        }
+
+        // 7. Final Formatting and Display
+        
+        let finalOutput = cleanedText;
+        
+        // --- FINAL FAIL-SAFE: Use topChunkText if all else failed ---
+        if ((!cleanedText || cleanedText.toLowerCase().trim() === "i do not know" || cleanedText.includes("error")) && topChunkText.length > 0 && topChunkScore > 0.6) {
+             // Only overwrite if cleanedText is empty, 'i do not know', or an error, AND we have a high-confidence top chunk.
+            console.warn("[RAG Final Output] Overriding model failure with top chunk text.");
+            finalOutput = topChunkText.trim();
+        } else if (!finalOutput || finalOutput.toLowerCase().trim() === "i do not know") {
+            // Final, final fail-safe for an empty string or generic "i do not know"
+            finalOutput = "I could not find a relevant answer in the knowledge base.";
+        }
+        
+        finalAnswer = `${sourceTag}\n\n${finalOutput}`;
+        // --- END FINAL FAIL-SAFE ---
+
+        appendMessage('bot', finalAnswer);
+        if (systemStatus) systemStatus.textContent = `Model: Ready | KB: ${vectorStore?.chunks?.length ?? 0} chunks.`;
+
+    } catch (err) {
+        // ... (Error handling)
+        console.error("runRAG fatal error:", err);
+        const systemStatus = document.getElementById('model-status');
+        if (systemStatus) systemStatus.textContent = `SYSTEM ERROR: ${err.message}`;
+        appendMessage('bot', `(Error: ${err.message})`);
+    }
+}
+// --- END runRAG ---
+</script>
+</body>
+</html><script>console.log('Code is running...');
+/*notes
+Add a force stopper in kb file to divide the chunks.
+ex. // - this comment element is a stopper 
+
+
+*/
+
+document.addEventListener('DOMContentLoaded', () => {
+            // --- 1. Link Range Sliders to Output Values (UI ONLY) ---
+            function linkRangeSlider(inputId, outputId) {
+                const input = document.getElementById(inputId);
+                const output = document.getElementById(outputId);
+                
+                if (input && output) {
+                    output.textContent = input.value; 
+                    input.addEventListener('input', () => {
+                        output.textContent = input.value;
+                    });
+                }
+            }
+            
+            linkRangeSlider('temperatureInput', 'tempOutput');
+            linkRangeSlider('topPInput', 'topPOutput');
+            linkRangeSlider('numBeamsInput', 'numBeamsOutput');
+
+
+            // --- 2. Toggle Sampling vs. Beam Search Panels (UI ONLY) ---
+            const samplingCheckbox = document.getElementById('useSamplingCheckbox');
+            const samplingPanel = document.getElementById('samplingControls');
+            const beamPanel = document.getElementById('beamControls');
+            
+            function toggleDecodingMode() {
+                if (samplingCheckbox.checked) {
+                    samplingPanel.style.display = 'block';
+                    beamPanel.style.display = 'none';
+                } else {
+                    beamPanel.style.display = 'block';
+                    samplingPanel.style.display = 'none';
+                }
+            }
+
+            toggleDecodingMode(); 
+            samplingCheckbox.addEventListener('change', toggleDecodingMode);
+        });
+     
+
+//cleaners and helpers
+
+function cleanGeneratedText(generatedText, promptText, queryText) {
+  let cleaned = (generatedText || "").trim();
+  const fullInstruction = (promptText || "").trim();
+
+  const escapedInstruction = fullInstruction.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const instructionRegex = new RegExp(`^${escapedInstruction}`, 'i');
+  cleaned = cleaned.replace(instructionRegex, '').trim();
+
+  const leakPhrases = [
+    /In summary,[\s\S]*/i,
+    /Strictly do not invent new words that are not found in context.[\s\S]*/i,
+  	/not answered in the provided context.*/i,
+    /In this context,.*?\./i,
+    /context:.*question:.*answer:[\s\r\n]*/i,
+    /based on the context provided,*/i,
+    /based on the context,*/i,
+    /here is the answer based on the context:*/i,
+    /^that*/i,
+    /of a USE*/i,
+    /^yes,*/i,
+  	/^the answer in this context is:*/i,
+  	/not provided in the given context./i,
+    /of using a USE device*/i,
+    /answer:[\s\r\n]*/i,
+    /^The correct answer is:*/i,
+    /^The answer is:*/i,
+  	/^The question is/i,
+    /Therefore, the answer is:*/i,
+    /Therefore, I cannot answer that question.*/i,
+ 	/^The given context does not provide information[\s\S]*/i,
+  	/^The provided context[\s\S]*/i,
+    /^The context does not provide information[\s\S]*/i,
+  	/^It is not specified[\s\S]*/i,
+    /\[CONTEXT\]:*/i,
+    /\[QUESTION\]:*/i,
+  ];
+
+  try {
+    if (queryText) {
+      leakPhrases.push(new RegExp(`^${queryText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\r\\n]*`, 'i'));
+      leakPhrases.push(new RegExp(`^What is ${queryText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\r\n]*`, 'i'));
+    }
+  } catch (e) { }
+
+  for (const pattern of leakPhrases) {
+    cleaned = cleaned.replace(pattern, '').trim();
+  }
+
+  cleaned = cleaned.replace(/^['":-]/, '').trim();
+
+  // Replace any sequence of asterisks and/or whitespace with a single space
+  cleaned = cleaned.replace(/[\s\*]+/g, ' ').trim();
+
+  return cleaned;
+}<\/script></body></html>
